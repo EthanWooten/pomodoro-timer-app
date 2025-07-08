@@ -1,0 +1,59 @@
+body {
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Courier New', monospace;
+
+    background-image: url('img/aestheticOne.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    color: white;
+    
+}
+
+.container {
+    background:#152ed14b;
+    width: 450px;
+    padding:30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow:0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#timer {
+        font-size: 48px;
+        margin: 20px 0;
+
+}
+
+button {
+    font-family: 'Courier New', monospace;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border: none;
+    border-radius: 5px;
+    background: #007acc;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+
+button:hover {
+    background: #005f99;
+}
+
+#mode {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #007acc;          /* Blue for work */
+}
+
+#mode.break {
+  color: #28a745;          /* Green for break */
+}
