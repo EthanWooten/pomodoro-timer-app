@@ -1,4 +1,4 @@
-//DOMs
+// DOM elements
 const timerDisplay = document.getElementById("timer");
 const startButton = document.getElementById("start");
 const pauseButton = document.getElementById("pause");
@@ -7,144 +7,129 @@ const skipButton = document.getElementById("skip");
 const modeDisplay = document.getElementById("mode");
 const pomodoroCountDisplay = document.getElementById("pomodoro-count");
 
-// Constants for durations (in seconds)
-const WORK_DURATION = 25 * 60; // 25 minutes
-const SHORT_BREAK_DURATION = 5 * 60; // 5 minutes
-const LONG_BREAK_DURATION = 15 * 60; // 15 minutes
+// Constants
+const WORK_DURATION = 25 * 60;
+const SHORT_BREAK_DURATION = 5 * 60;
+const LONG_BREAK_DURATION = 15 * 60;
 
-// Timer state variables
+// State
 let timeLeft = WORK_DURATION;
-let timer;
+let timer = null;
 let isRunning = false;
-let isWorkSession = true; // true = work, false = break
-let pomodoroCount = 0; // Completed pomodoros count
+let isWorkSession = true;
+let pomodoroCount = 0;
 
-// Update the timer display
+// Update timer display
 function updateDisplay() {
-  let minutes = Math.floor(timeLeft / 60);
-  let seconds = timeLeft % 60;
-  timerDisplay.textContent = `${minutes.toString().padStart(2, "0")}:${seconds
-    .toString()
-    .padStart(2, "0")}`;
+    let minutes = Math.floor(timeLeft / 60);
+    let seconds = timeLeft % 60;
+    timerDisplay.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
-// Update mode text and skip button state
+// Update mode
 function updateModeDisplay() {
-  if (isWorkSession) {
-    modeDisplay.textContent = "Work Time";
-    modeDisplay.classList.remove("break");
-    skipButton.disabled = true; // can't skip work sessions
-  } else {
-    if (pomodoroCount % 4 === 0 && pomodoroCount !== 0) {
-      modeDisplay.textContent = "Long Break";
+    if (isWorkSession) {
+        modeDisplay.textContent = "Work Time";
+        modeDisplay.classList.remove("break");
+        skipButton.disabled = true;
     } else {
-      modeDisplay.textContent = "Short Break";
+        modeDisplay.textContent = (pomodoroCount % 4 === 0 && pomodoroCount !== 0) ? "Long Break" : "Short Break";
+        modeDisplay.classList.add("break");
+        skipButton.disabled = false;
     }
-    modeDisplay.classList.add("break");
-    skipButton.disabled = false; // can skip breaks
-  }
 }
 
-// Update Pomodoro count display
+// Update pomodoro count
 function updatePomodoroCountDisplay() {
-  pomodoroCountDisplay.textContent = `Pomodoros Completed: ${pomodoroCount}`;
+    pomodoroCountDisplay.textContent = `Pomodoros Completed: ${pomodoroCount}`;
 }
 
-// Update Start/Pause button enabled state for UX
+// Update button states
 function updateButtons() {
-  startButton.disabled = isRunning;
-  pauseButton.disabled = !isRunning;
+    startButton.disabled = isRunning;
+    pauseButton.disabled = !isRunning;
 }
 
-// Start or resume the timer
-function startTimer() {
-  if (!isRunning) {
-    isRunning = true;
+// Handle session end cleanly
+function handleSessionEnd() {
+    if (isWorkSession) {
+        pomodoroCount++;
+        isWorkSession = false;
+        timeLeft = (pomodoroCount % 4 === 0) ? LONG_BREAK_DURATION : SHORT_BREAK_DURATION;
+        alert((pomodoroCount % 4 === 0) ? "Great job! Time for a long break (15 min)." : "Time's up! Take a short break (5 min)." );
+    } else {
+        isWorkSession = true;
+        timeLeft = WORK_DURATION;
+        alert("Break's over! Back to work.");
+    }
+    updateDisplay();
+    updateModeDisplay();
+    updatePomodoroCountDisplay();
+    isRunning = false;
     updateButtons();
+}
 
-    timer = setInterval(() => {
-      if (timeLeft > 0) {
-        timeLeft--;
-        updateDisplay();
-      } else {
-        clearInterval(timer);
-        isRunning = false;
+// Start the timer safely
+function startTimer() {
+    if (!isRunning) {
+        if (timer) clearInterval(timer); // Prevent multiple intervals
+        isRunning = true;
         updateButtons();
 
-        if (isWorkSession) {
-          pomodoroCount++;
-          isWorkSession = false;
+        timer = setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                updateDisplay();
+            } else {
+                clearInterval(timer);
+                handleSessionEnd();
+            }
+        }, 1000);
+    }
+}
 
-          if (pomodoroCount % 4 === 0) {
-            timeLeft = LONG_BREAK_DURATION;
-            alert("Great job! Time for a long break (15 min).");
-          } else {
-            timeLeft = SHORT_BREAK_DURATION;
-            alert("Time's up! Take a short break (5 min).");
-          }
-        } else {
-          isWorkSession = true;
-          timeLeft = WORK_DURATION;
-          alert("Break's over! Back to work.");
-        }
+// Pause timer
+function pauseTimer() {
+    if (timer) clearInterval(timer);
+    isRunning = false;
+    updateButtons();
+}
 
+// Reset everything
+function resetTimer() {
+    if (timer) clearInterval(timer);
+    isRunning = false;
+    isWorkSession = true;
+    timeLeft = WORK_DURATION;
+    pomodoroCount = 0;
+    updateDisplay();
+    updateModeDisplay();
+    updatePomodoroCountDisplay();
+    updateButtons();
+}
+
+// Skip break and return to work
+function skipBreak() {
+    if (!isWorkSession && confirm("Skip the break and start working?")) {
+        if (timer) clearInterval(timer);
+        isRunning = false;
+        isWorkSession = true;
+        timeLeft = WORK_DURATION;
         updateDisplay();
         updateModeDisplay();
         updatePomodoroCountDisplay();
-        startTimer(); // Automatically start next session
-      }
-    }, 1000);
-  }
-}
-
-// Pause the timer
-function pauseTimer() {
-  clearInterval(timer);
-  isRunning = false;
-  updateButtons();
-}
-
-// Reset timer and count fully
-function resetTimer() {
-  clearInterval(timer);
-  isRunning = false;
-  isWorkSession = true;
-  timeLeft = WORK_DURATION;
-  pomodoroCount = 0;
-  updateDisplay();
-  updateModeDisplay();
-  updatePomodoroCountDisplay();
-  updateButtons();
-}
-
-// Skip the current break and start work session immediately
-function skipBreak() {
-  if (!isWorkSession) {
-    if (confirm("Skip the break and start working?")) {
-      console.log("Skipping break...");
-      clearInterval(timer);
-      isRunning = false;
-      isWorkSession = true;
-      timeLeft = WORK_DURATION;
-      updateDisplay();
-      updateModeDisplay();
-      updatePomodoroCountDisplay();
-      updateButtons();
-      console.log("Calling startTimer(), isRunning =", isRunning);
-      startTimer();
+        updateButtons();
     }
-  }
 }
 
-// Attach event listeners
+// Event listeners
 startButton.addEventListener("click", startTimer);
 pauseButton.addEventListener("click", pauseTimer);
 resetButton.addEventListener("click", resetTimer);
 skipButton.addEventListener("click", skipBreak);
 
-// Initialize UI on page load
+// Initialize UI
 updateDisplay();
 updateModeDisplay();
 updatePomodoroCountDisplay();
 updateButtons();
-
